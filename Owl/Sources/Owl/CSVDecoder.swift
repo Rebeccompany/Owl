@@ -8,7 +8,7 @@ public final class CSVDecoder {
 //
 //    }
     
-    func converDataToString(_ data: Data) throws -> String {
+    func convertDataToString(_ data: Data) throws -> String {
         guard let string = String(data: data, encoding: .utf8) else {
             throw NSError(domain: "", code: 1, userInfo: nil)
         }
