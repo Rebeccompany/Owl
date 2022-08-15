@@ -11,16 +11,11 @@ final class CSVDecoderTests: XCTestCase {
     """.data(using: .utf8)!
     
     override func setUp() {
-        sut = CSVDecoder()
+        sut = CSVDecoder(separator: ",")
     }
     
     override func tearDown() {
         sut = nil
-    }
-    
-    func testConvertDataToString() throws {
-        let strings = try sut.convertDataToString(dummyCSV)
-        XCTAssertEqual(strings, "name, age\nRebecca, 22")
     }
     
     func testCreateCSVData() throws {
@@ -31,5 +26,18 @@ final class CSVDecoderTests: XCTestCase {
         
         XCTAssertEqual(expectedHeaders, csvData.headers)
         XCTAssertEqual(expectedRows, csvData.rows)
+    }
+    
+    struct DummyCSV: Decodable, Equatable {
+        var name: String
+        var age: Int
+    }
+    
+    func testDecodeCSV() throws {
+        let dummy = try sut.decode(DummyCSV.self, from: dummyCSV)
+        
+        let expectedDummy = DummyCSV(name: "Rebecca", age: 22)
+        
+        XCTAssertEqual(expectedDummy, dummy)
     }
 }
