@@ -60,9 +60,9 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
         }
         
         guard let header = header,
-                header.index < headers.count,
-                row.contents.count < header.index,
-                !row.contents[header.index].content.isEmpty
+              header.index < headers.count,
+              !row.contents[header.index].content.isEmpty,
+              headers.count == row.contents.count
         else {
             return false
         }
@@ -71,7 +71,7 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
     }
     
     func decodeNil(forKey key: Key) throws -> Bool {
-        fatalError()
+        !contains(key)
     }
     
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
