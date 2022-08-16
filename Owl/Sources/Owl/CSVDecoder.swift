@@ -36,7 +36,8 @@ internal final class CSVReader: Decoder {
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        fatalError()
+        let container = CSVUnkeyedDecodingContainer(data: csvData, codingPath: codingPath)
+        return container
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -44,74 +45,47 @@ internal final class CSVReader: Decoder {
     }
 }
 
-internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
+internal final class CSVUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     var codingPath: [CodingKey]
-    var allKeys: [Key]
-    var headers: [Header]
-    var row: Row
     
-    init(headers: [Header], row: Row, codingPath: [CodingKey]) {
-        self.headers = headers
-        self.row = row
+    var count: Int? {
+        data.rows.count
+    }
+    
+    var isAtEnd: Bool {
+        currentIndex >= (count ?? 0)
+    }
+    
+    var currentIndex: Int
+    var data: CSVData
+    
+    init(data: CSVData, codingPath: [CodingKey]) {
         self.codingPath = codingPath
-        self.allKeys = headers.compactMap { Key(stringValue: $0.key) }
+        self.currentIndex = 0
+        self.data = data
     }
     
-    func contains(_ key: Key) -> Bool {
-        let header = getHeader(for: key)
-        
-        guard let header = header,
-              header.index < headers.count,
-              !row.contents[header.index].content.isEmpty,
-              headers.count == row.contents.count
-        else {
-            return false
+    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+        guard !isAtEnd else {
+#warning("put correct error")
+            throw NSError()
         }
         
-        return true
+        let row = data.rows[currentIndex]
+        let decoder = CSVReader(csvData: CSVData(headers: data.headers, rows: [row]))
+        currentIndex += 1
+        return try T(from: decoder)
     }
     
-    private func getHeader(for key: Key) -> Header? {
-        let header = headers.first { header in
-            header.key == key.stringValue
-        }
-        return header
+    func decodeNil() throws -> Bool {
+        !isAtEnd
     }
     
-    func decodeNil(forKey key: Key) throws -> Bool {
-        !contains(key)
-    }
-    
-    func decode(_ type: String.Type, forKey key: Key) throws -> String {
-        let header = getHeader(for: key)
-        
-        guard let header = header else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "row: \(self.row) Headers: \(self.headers)")
-            throw DecodingError.keyNotFound(key, context)
-        }
-        
-        return row.contents[header.index].content
-    }
-    
-    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable, T: LosslessStringConvertible {
-        let string = try decode(String.self, forKey: key)
-        guard let value = T(string) else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "row: \(self.row) Headers: \(self.headers)")
-            throw DecodingError.keyNotFound(key, context)
-        }
-        
-        return value
-    }
-    
-    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         fatalError()
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError()
-    }
-    
-    func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+    func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
         fatalError()
     }
     
@@ -119,7 +93,5 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
         fatalError()
     }
     
-    func superDecoder(forKey key: Key) throws -> Decoder {
-        fatalError()
-    }
+    
 }

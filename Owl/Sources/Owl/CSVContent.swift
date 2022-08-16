@@ -8,8 +8,14 @@
 import Foundation
 
 struct CSVData {
+    
     var headers: [Header]
     var rows: [Row]
+    
+    init(headers: [Header], rows: [Row]) {
+        self.headers = headers
+        self.rows = rows
+    }
     
     init(data: Data, separator: Character) throws {
         guard let contentCSVString = String(data: data, encoding: .utf8) else {
