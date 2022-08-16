@@ -15,6 +15,7 @@ struct DummyDecodedStruct: Decodable, Equatable {
     static let csv: Data = """
     name,age
     Rebecca,22
+    Carol,28
     """.data(using: .utf8)!
     
     static let csvImcomplete: Data = """

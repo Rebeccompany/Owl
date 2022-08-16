@@ -39,9 +39,9 @@ final class CSVDecoderTests: XCTestCase {
     }
     
     func testDecodeCSV() throws {
-        let dummy = try sut.decode(DummyDecodedStruct.self, from: dummyCSV)
+        let dummy = try sut.decode([DummyDecodedStruct].self, from: dummyCSV)
         
-        let expectedDummy = DummyDecodedStruct(name: "Rebecca", age: 22)
+        let expectedDummy = [DummyDecodedStruct(name: "Rebecca", age: 22),DummyDecodedStruct(name: "Carol", age: 28)]
         
         XCTAssertEqual(expectedDummy, dummy)
     }

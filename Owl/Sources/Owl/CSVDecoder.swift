@@ -29,7 +29,10 @@ internal final class CSVReader: Decoder {
     }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        fatalError()
+        let row = self.csvData.rows.first!
+        let container = CSVKeyedDecodingContainer<Key>(headers: csvData.headers, row: row, codingPath: self.codingPath)
+        
+        return KeyedDecodingContainer(container)
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -55,9 +58,7 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
     }
     
     func contains(_ key: Key) -> Bool {
-        let header = headers.first { header in
-            header.key == key.stringValue
-        }
+        let header = getHeader(for: key)
         
         guard let header = header,
               header.index < headers.count,
@@ -70,64 +71,36 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
         return true
     }
     
+    private func getHeader(for key: Key) -> Header? {
+        let header = headers.first { header in
+            header.key == key.stringValue
+        }
+        return header
+    }
+    
     func decodeNil(forKey key: Key) throws -> Bool {
         !contains(key)
     }
     
-    func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
-        fatalError()
-    }
-    
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
-        fatalError()
+        let header = getHeader(for: key)
+        
+        guard let header = header else {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "row: \(self.row) Headers: \(self.headers)")
+            throw DecodingError.keyNotFound(key, context)
+        }
+        
+        return row.contents[header.index].content
     }
     
-    func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-        fatalError()
-    }
-    
-    func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-        fatalError()
-    }
-    
-    func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-        fatalError()
-    }
-    
-    func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-        fatalError()
-    }
-    
-    func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-        fatalError()
-    }
-    
-    func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-        fatalError()
-    }
-    
-    func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
-        fatalError()
-    }
-    
-    func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-        fatalError()
-    }
-    
-    func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-        fatalError()
-    }
-    
-    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-        fatalError()
-    }
-    
-    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-        fatalError()
-    }
-    
-    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-        fatalError()
+    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable, T: LosslessStringConvertible {
+        let string = try decode(String.self, forKey: key)
+        guard let value = T(string) else {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "row: \(self.row) Headers: \(self.headers)")
+            throw DecodingError.keyNotFound(key, context)
+        }
+        
+        return value
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
@@ -149,7 +122,4 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
     func superDecoder(forKey key: Key) throws -> Decoder {
         fatalError()
     }
-    
-    
-    
 }
