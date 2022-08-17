@@ -29,10 +29,13 @@ struct DummyDecodedStruct: Decodable, Equatable {
     """.data(using: .utf8)!
     
     static let headers: [Header] = [Header(key: "name", index: 0), Header(key: "age", index: 1)]
-    static let row: Row = {
-        let contents: [Content] = [Content(content: "Rebecca", index: 0), Content(content: "22", index: 1)]
-        return Row(contents: contents)
+    static let rows: [Row] = {
+        let beccaContents: [Content] = [Content(content: "Rebecca", index: 0), Content(content: "22", index: 1)]
+        let carolContents: [Content] = [Content(content: "Carol", index: 0), Content(content: "28", index: 1)]
+        return [Row(contents: beccaContents), Row(contents: carolContents)]
     }()
+    
+    static let csvData: CSVData = CSVData(headers: headers, rows: rows)
     
     enum CodingKeys: String, CodingKey {
         case name

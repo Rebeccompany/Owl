@@ -18,7 +18,7 @@ final class CSVDecoderTests: XCTestCase {
     func testCreateCSVData() throws {
         let csvData: CSVData = try CSVData(data: dummyCSV, separator: ",")
         let expectedHeaders: [Header] = DummyDecodedStruct.headers
-        let expectedRows: [Row] = [DummyDecodedStruct.row]
+        let expectedRows: [Row] = DummyDecodedStruct.rows
         
         XCTAssertEqual(expectedHeaders, csvData.headers)
         XCTAssertEqual(expectedRows, csvData.rows)

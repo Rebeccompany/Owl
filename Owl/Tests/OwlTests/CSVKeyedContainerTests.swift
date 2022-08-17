@@ -14,7 +14,7 @@ class CSVKeyedContainerTests: XCTestCase {
     
     override func setUp() {
         sut = .init(headers: DummyDecodedStruct.headers,
-                    row: DummyDecodedStruct.row,
+                    row: DummyDecodedStruct.rows[0],
                     codingPath: [])
     }
     
