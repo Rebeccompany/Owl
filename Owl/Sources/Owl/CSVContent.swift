@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CSVData {
+struct CSVData: Equatable {
     
     var headers: [Header]
     var rows: [Row]

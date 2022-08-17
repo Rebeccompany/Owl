@@ -15,7 +15,7 @@ class CSVKeyedContainerTests: XCTestCase {
     override func setUp() {
         sut = .init(headers: DummyDecodedStruct.headers,
                     row: DummyDecodedStruct.rows[0],
-                    codingPath: [])
+                    codingPath: [], nestedContentDecoder: JSONDecoder())
     }
     
     override func tearDown() {
@@ -31,7 +31,7 @@ class CSVKeyedContainerTests: XCTestCase {
         sut = .init(headers: DummyDecodedStruct.headers,
                     row: Row(contents: [Content(content: "", index: 0),
                                         Content(content: "22", index: 1)]),
-                    codingPath: [])
+                    codingPath: [], nestedContentDecoder: JSONDecoder())
         
         let result = sut.contains(.name)
         XCTAssertFalse(result)
@@ -45,7 +45,7 @@ class CSVKeyedContainerTests: XCTestCase {
     func testContentIsNill() throws {
         sut = .init(headers: DummyDecodedStruct.headers,
                     row: Row(contents: [Content(content: "22", index: 1)]),
-                    codingPath: [])
+                    codingPath: [], nestedContentDecoder: JSONDecoder())
         
         let result = try sut.decodeNil(forKey: .name)
         XCTAssertTrue(result)
@@ -53,7 +53,7 @@ class CSVKeyedContainerTests: XCTestCase {
         sut = .init(headers: DummyDecodedStruct.headers,
                     row: Row(contents: [Content(content: "", index: 0),
                                         Content(content: "22", index: 1)]),
-                    codingPath: [])
+                    codingPath: [], nestedContentDecoder: JSONDecoder())
         
         let result2 = try sut.decodeNil(forKey: .name)
         XCTAssertTrue(result2)

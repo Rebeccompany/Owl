@@ -24,6 +24,13 @@ final class CSVDecoderTests: XCTestCase {
         XCTAssertEqual(expectedRows, csvData.rows)
     }
     
+    func testCreateCSVDataWithNestedJSON() throws {
+        let csvData: CSVData = try CSVData(data: DummyDecodedStructWithNesting.data,
+                                           separator: DummyDecodedStructWithNesting.dataSeparator)
+        
+        XCTAssertEqual(csvData, DummyDecodedStructWithNesting.csvData)
+    }
+    
     func testCreateImcompleteCSVData() throws {
         let data = try CSVData(data: DummyDecodedStruct.csvImcomplete, separator: ",")
         let expectedHeaders: [Header] = DummyDecodedStruct.headers
@@ -44,5 +51,18 @@ final class CSVDecoderTests: XCTestCase {
         let expectedDummy = [DummyDecodedStruct(name: "Rebecca", age: 22),DummyDecodedStruct(name: "Carol", age: 28)]
         
         XCTAssertEqual(expectedDummy, dummy)
+    }
+    
+    func testDecodeCSVWithNestedJSON() throws {
+        sut = CSVDecoder(separator: DummyDecodedStructWithNesting.dataSeparator)
+        
+        let dummy = try sut.decode([DummyDecodedStructWithNesting].self,
+                                   from: DummyDecodedStructWithNesting.data)
+        let expectedResult: [DummyDecodedStructWithNesting] = [
+            .init(id: "fgh123", person: .init(name: "Roberta", age: 21)),
+            .init(id: "fgh121", person: .init(name: "Nathalia", age: 20))
+        ]
+        
+        XCTAssertEqual(dummy, expectedResult)
     }
 }

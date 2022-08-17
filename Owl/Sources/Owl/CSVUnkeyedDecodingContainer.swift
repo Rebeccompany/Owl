@@ -20,16 +20,18 @@ internal final class CSVUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     
     var currentIndex: Int
     var data: CSVData
+    var nestedContentDecoder: AnyDecoder
     
-    init(data: CSVData, codingPath: [CodingKey]) {
+    init(data: CSVData, codingPath: [CodingKey], nestedContentDecoder: AnyDecoder) {
         self.codingPath = codingPath
+        self.nestedContentDecoder = nestedContentDecoder
         self.currentIndex = 0
         self.data = data
     }
     
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         let row = data.rows[currentIndex]
-        let decoder = CSVReader(csvData: CSVData(headers: data.headers, rows: [row]))
+        let decoder = CSVReader(csvData: CSVData(headers: data.headers, rows: [row]), nestedContentDecoder: nestedContentDecoder)
         currentIndex += 1
         return try T(from: decoder)
     }

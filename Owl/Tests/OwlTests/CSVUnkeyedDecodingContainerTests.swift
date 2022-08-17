@@ -14,7 +14,7 @@ final class CSVUnkeyedDecodingContainerTests: XCTestCase {
     var sut: CSVUnkeyedDecodingContainer! = nil
     
     override func setUp() {
-        sut = CSVUnkeyedDecodingContainer(data: DummyDecodedStruct.csvData, codingPath: [])
+        sut = CSVUnkeyedDecodingContainer(data: DummyDecodedStruct.csvData, codingPath: [], nestedContentDecoder: JSONDecoder())
     }
     
     override func tearDown() {
@@ -28,7 +28,7 @@ final class CSVUnkeyedDecodingContainerTests: XCTestCase {
     
     func testCSVListWithWrongData() throws {
         let data = CSVData(headers: DummyDecodedStruct.headers, rows: [Row(contents: [Content(content: "Rebecca", index: 0), Content(content: "Bahia", index: 1)])])
-        sut = CSVUnkeyedDecodingContainer(data: data, codingPath: [])
+        sut = CSVUnkeyedDecodingContainer(data: data, codingPath: [], nestedContentDecoder: JSONDecoder())
         XCTAssertThrowsError(try sut.decode(DummyDecodedStruct.self))
     }
     
