@@ -48,12 +48,12 @@ struct DummyDecodedStructWithNesting: Decodable, Equatable {
     var person: DummyDecodedStruct
     
     static let data: Data = """
-    id  person
-    fgh123  {"name":"Roberta","age":21}
-    fgh121  {"name":"Nathalia","age":20}
+    id;person
+    fgh123;{"name":"Roberta","age":21}
+    fgh121;{"name":"Nathalia","age":20}
     """.data(using: .utf8)!
     
-    static let dataSeparator: Character = " "
+    static let dataSeparator: Separator = .semicollon
     static let csvData: CSVData = {
         let headers = [Header(key: "id", index: 0), Header(key: "person", index: 1)]
         let rows = [

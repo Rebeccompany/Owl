@@ -30,7 +30,10 @@ internal final class CSVUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     }
     
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
-        let row = data.rows[currentIndex]
+        guard let row = data.rows[safe: currentIndex] else {
+            throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "The value of type \(type) could not be found"))
+        }
+        
         let decoder = CSVReader(csvData: CSVData(headers: data.headers, rows: [row]), nestedContentDecoder: nestedContentDecoder)
         currentIndex += 1
         return try T(from: decoder)
@@ -41,7 +44,10 @@ internal final class CSVUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     }
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError()
+        return KeyedDecodingContainer(CSVKeyedDecodingContainer<NestedKey>(headers: data.headers,
+                                                    row: data.rows[currentIndex],
+                                                    codingPath: codingPath,
+                                                    nestedContentDecoder: nestedContentDecoder))
     }
     
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -49,6 +55,6 @@ internal final class CSVUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     }
     
     func superDecoder() throws -> Decoder {
-        fatalError()
+        CSVReader(csvData: data, nestedContentDecoder: nestedContentDecoder)
     }
 }

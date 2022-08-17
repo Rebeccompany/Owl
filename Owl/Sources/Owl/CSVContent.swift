@@ -17,7 +17,7 @@ struct CSVData: Equatable {
         self.rows = rows
     }
     
-    init(data: Data, separator: Character) throws {
+    init(data: Data, separator: Separator) throws {
         guard let contentCSVString = String(data: data, encoding: .utf8) else {
             throw ConvertingError.couldNotReadData
         }
@@ -25,14 +25,14 @@ struct CSVData: Equatable {
         var rows = contentCSVString.split(separator: "\n")
         
         guard !rows.isEmpty else { throw ConvertingError.couldNotFindHeaders }
-        let headers = rows.removeFirst().split(separator: separator).enumerated()
+        let headers = rows.removeFirst().split(separator: separator.character).enumerated()
         
         self.headers = headers.map({ index, key in
             Header(key: String(key), index: index)
         })
         
         self.rows = rows.map { row in
-            row.split(separator: separator).enumerated()
+            row.split(separator: separator.character).enumerated()
                 .map { index, content in
                     Content(content: String(content), index: index)
                 }

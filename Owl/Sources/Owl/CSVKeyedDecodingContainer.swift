@@ -55,7 +55,12 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
             throw DecodingError.keyNotFound(key, context)
         }
         
-        return row.contents[header.index].content
+        guard let content = row.contents[safe: header.index] else {
+            throw DecodingError.valueNotFound(type, DecodingError.Context(codingPath: codingPath, debugDescription: "The value for key \(key) of type \(type) was not found in the row \(row.contents.map(\.content))"))
+        }
+        
+        let result = content.content
+        return result
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable, T: LosslessStringConvertible {
@@ -69,10 +74,12 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        guard let header = getHeader(for: key), header.index < row.contents.count else {
+        guard let header = getHeader(for: key) else {
             throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "Key \(key.description) was not found in \(headers)"))
         }
-        let content = row.contents[header.index]
+        guard let content = row.contents[safe: header.index] else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: "Row missing content. Row: \(row.contents.map(\.content)) Header: \(headers.map(\.key))"))
+        }
         
         guard let contentData = content.content.data(using: .utf8) else {
             throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "data for type \(type) was not formated correctely"))
@@ -80,6 +87,11 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
         
         return try nestedContentDecoder.decode(type, from: contentData)
         
+    }
+    
+    func superDecoder() throws -> Decoder {
+        CSVReader(csvData: CSVData(headers: headers, rows: [row]),
+                  nestedContentDecoder: nestedContentDecoder)
     }
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
@@ -92,11 +104,8 @@ internal final class CSVKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCon
                                                 debugDescription: "CSV cannot be nested inside another CSV"))
     }
     
-    func superDecoder() throws -> Decoder {
-        fatalError("Inheritance not implemented")
-    }
-    
     func superDecoder(forKey key: Key) throws -> Decoder {
-        fatalError("Inheritance not implemented")
+        throw DecodingError.dataCorrupted(.init(codingPath: codingPath,
+                                                debugDescription: "CSV cannot be nested inside another CSV"))
     }
 }

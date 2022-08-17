@@ -8,7 +8,7 @@ final class CSVDecoderTests: XCTestCase {
     var dummyCSV: Data = DummyDecodedStruct.csv
     
     override func setUp() {
-        sut = CSVDecoder(separator: ",")
+        sut = CSVDecoder(separator: .comma)
     }
     
     override func tearDown() {
@@ -16,7 +16,7 @@ final class CSVDecoderTests: XCTestCase {
     }
     
     func testCreateCSVData() throws {
-        let csvData: CSVData = try CSVData(data: dummyCSV, separator: ",")
+        let csvData: CSVData = try CSVData(data: dummyCSV, separator: .comma)
         let expectedHeaders: [Header] = DummyDecodedStruct.headers
         let expectedRows: [Row] = DummyDecodedStruct.rows
         
@@ -32,13 +32,13 @@ final class CSVDecoderTests: XCTestCase {
     }
     
     func testCreateImcompleteCSVData() throws {
-        let data = try CSVData(data: DummyDecodedStruct.csvImcomplete, separator: ",")
+        let data = try CSVData(data: DummyDecodedStruct.csvImcomplete, separator: .comma)
         let expectedHeaders: [Header] = DummyDecodedStruct.headers
         let expectedRow: [Row] = [Row(contents: [Content(content: "22", index: 0)])]
         XCTAssertEqual(expectedHeaders, data.headers)
         XCTAssertEqual(expectedRow, data.rows)
         
-        let data2 = try CSVData(data: DummyDecodedStruct.csvImcomplete2, separator: ",")
+        let data2 = try CSVData(data: DummyDecodedStruct.csvImcomplete2, separator: .comma)
         let expectedRows2: [Row] = [Row(contents: [Content(content: "Rebecca", index: 0)])]
         
         XCTAssertEqual(expectedHeaders, data2.headers)
