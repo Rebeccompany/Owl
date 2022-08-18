@@ -5,8 +5,6 @@ final class CSVDecoderTests: XCTestCase {
     
     var sut: CSVDecoder! = nil
     
-    var dummyCSV: Data = DummyDecodedStruct.csv
-    
     override func setUp() {
         sut = CSVDecoder(separator: .comma)
     }
@@ -15,48 +13,34 @@ final class CSVDecoderTests: XCTestCase {
         sut = nil
     }
     
-    func testCreateCSVData() throws {
-        let csvData: CSVData = try CSVData(data: dummyCSV, separator: .comma)
-        let expectedHeaders: [Header] = DummyDecodedStruct.headers
-        let expectedRows: [Row] = DummyDecodedStruct.rows
-        
-        XCTAssertEqual(expectedHeaders, csvData.headers)
-        XCTAssertEqual(expectedRows, csvData.rows)
-    }
-    
-    func testCreateCSVDataWithNestedJSON() throws {
-        let csvData: CSVData = try CSVData(data: DummyDecodedStructWithNesting.data,
-                                           separator: DummyDecodedStructWithNesting.dataSeparator)
-        
-        XCTAssertEqual(csvData, DummyDecodedStructWithNesting.csvData)
-    }
-    
-    func testCreateImcompleteCSVData() throws {
-        let data = try CSVData(data: DummyDecodedStruct.csvImcomplete, separator: .comma)
-        let expectedHeaders: [Header] = DummyDecodedStruct.headers
-        let expectedRow: [Row] = [Row(contents: [Owl.Content(content: "", index: 0), Owl.Content(content: "22", index: 1)])]
-        
-        XCTAssertEqual(expectedHeaders, data.headers)
-        XCTAssertEqual(expectedRow, data.rows)
-        
-        let data2 = try CSVData(data: DummyDecodedStruct.csvImcomplete2, separator: .comma)
-        let expectedRows2: [Row] = [Row(contents: [Content(content: "Rebecca", index: 0), Content(content: "", index: 1)])]
-        
-        XCTAssertEqual(expectedHeaders, data2.headers)
-        XCTAssertEqual(expectedRows2, data2.rows)
+    func testDecodeCSVSingleValue() throws {
+        let dummy = try sut.decode(DummyDecodedStruct.self, from: DummyDecodedStruct.csv)
+        let expectedDummy = DummyDecodedStruct(name: "Rebecca", age: 22)
+        XCTAssertEqual(expectedDummy, dummy)
     }
     
     func testDecodeCSV() throws {
-        let dummy = try sut.decode([DummyDecodedStruct].self, from: dummyCSV)
-        
+        let dummy = try sut.decode([DummyDecodedStruct].self, from: DummyDecodedStruct.csv)
         let expectedDummy = [DummyDecodedStruct(name: "Rebecca", age: 22),DummyDecodedStruct(name: "Carol", age: 28)]
-        
         XCTAssertEqual(expectedDummy, dummy)
+    }
+    
+    func testDecodeCSVWithNullValues() throws {
+        let result = try sut.decode([DummyStructWithOptional].self, from: DummyStructWithOptional.data)
+        XCTAssertEqual(result, DummyStructWithOptional.expectedConvertionResult)
+    }
+    
+    func testDecodeCSVWithNestedJSONSingleValue() throws {
+        sut = CSVDecoder(separator: DummyDecodedStructWithNesting.dataSeparator)
+        let dummy = try sut.decode(DummyDecodedStructWithNesting.self,
+                                   from: DummyDecodedStructWithNesting.data)
+        let expectedResult: DummyDecodedStructWithNesting = .init(id: "fgh123", person: .init(name: "Roberta", age: 21))
+        
+        XCTAssertEqual(dummy, expectedResult)
     }
     
     func testDecodeCSVWithNestedJSON() throws {
         sut = CSVDecoder(separator: DummyDecodedStructWithNesting.dataSeparator)
-        
         let dummy = try sut.decode([DummyDecodedStructWithNesting].self,
                                    from: DummyDecodedStructWithNesting.data)
         let expectedResult: [DummyDecodedStructWithNesting] = [
@@ -65,5 +49,32 @@ final class CSVDecoderTests: XCTestCase {
         ]
         
         XCTAssertEqual(dummy, expectedResult)
+    }
+    
+    func testDecodeErrorWithIncorrectFormat() throws {
+        let dataWithIncompleteRow: Data = """
+        name, age
+        22
+        """.data(using: .utf8)!
+        
+        let dataWithIncompleteHeader: Data = """
+        age
+        Rebecca, 21
+        """.data(using: .utf8)!
+        
+        let data = [dataWithIncompleteRow, dataWithIncompleteHeader]
+        
+        try data.forEach { csv in
+            XCTAssertThrowsError(try sut.decode([DummyDecodedStruct].self, from: csv))
+        }
+    }
+    
+    func testDecodeErrorWithMissingData() throws {
+        let dataWithIncompleteRow: Data = """
+        name, age
+        ,22
+        """.data(using: .utf8)!
+        
+        XCTAssertThrowsError(try sut.decode([DummyDecodedStruct].self, from: dataWithIncompleteRow))
     }
 }
