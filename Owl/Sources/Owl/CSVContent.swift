@@ -22,22 +22,28 @@ struct CSVData: Equatable {
             throw ConvertingError.couldNotReadData
         }
         
-        var rows = contentCSVString.split(separator: "\n")
+        var rows = contentCSVString.split(separator: "\n", omittingEmptySubsequences: false)
         
         guard !rows.isEmpty else { throw ConvertingError.couldNotFindHeaders }
-        let headers = rows.removeFirst().split(separator: separator.character).enumerated()
+        let headers = rows.removeFirst().split(separator: separator.character, omittingEmptySubsequences: false).enumerated()
         
         self.headers = headers.map({ index, key in
             Header(key: String(key), index: index)
         })
         
         self.rows = rows.map { row in
-            row.split(separator: separator.character).enumerated()
+            row.split(separator: separator.character, omittingEmptySubsequences: false).enumerated()
                 .map { index, content in
                     Content(content: String(content), index: index)
                 }
         }
         .map(Row.init)
+        
+        try self.rows.forEach { row in
+            if row.contents.count != self.headers.count {
+                throw ConvertingError.imcompleteData
+            }
+        }
         
     }
 }
@@ -59,4 +65,5 @@ struct Content: Equatable {
 enum ConvertingError: Error {
     case couldNotReadData
     case couldNotFindHeaders
+    case imcompleteData
 }

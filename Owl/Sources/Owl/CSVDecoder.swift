@@ -70,6 +70,14 @@ public final class CSVDecoder: TopLevelDecoder {
         self.nestedContentDecoder = JSONDecoder()
     }
     
+    /**
+     Returns a value of the type you specify, decoded from a CSV file.
+     
+    if your desired decoded type is a Collection it will decode the entire CSV but if it is any other type of Decodable Type it will decode only the first element
+     
+     - Parameter type: The type of the data to decode from the CSV
+     - Parameter from: The CSV to decode
+     */
     public func decode<T>(_ type: T.Type, from: Data) throws -> T where T : Decodable {
         let csvData = try CSVData(data: from, separator: separator)
         let reader = CSVReader(csvData: csvData, nestedContentDecoder: nestedContentDecoder)
@@ -91,7 +99,9 @@ internal final class CSVReader: Decoder {
     }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        let row = self.csvData.rows.first!
+        guard let row = self.csvData.rows.first else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Could not find the required data in \(csvData.rows)"))
+        }
         let container = CSVKeyedDecodingContainer<Key>(headers: csvData.headers, row: row, codingPath: self.codingPath, nestedContentDecoder: nestedContentDecoder)
         
         return KeyedDecodingContainer(container)
@@ -103,6 +113,6 @@ internal final class CSVReader: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        fatalError()
+        preconditionFailure("This container is not implemented due to lack of sense inside a CSV")
     }
 }

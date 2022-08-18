@@ -51,7 +51,9 @@ internal final class CSVUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     }
     
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
-        fatalError()
+        CSVUnkeyedDecodingContainer(data: data,
+                                    codingPath: codingPath,
+                                    nestedContentDecoder: nestedContentDecoder)
     }
     
     func superDecoder() throws -> Decoder {

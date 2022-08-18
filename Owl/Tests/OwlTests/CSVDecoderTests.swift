@@ -34,12 +34,13 @@ final class CSVDecoderTests: XCTestCase {
     func testCreateImcompleteCSVData() throws {
         let data = try CSVData(data: DummyDecodedStruct.csvImcomplete, separator: .comma)
         let expectedHeaders: [Header] = DummyDecodedStruct.headers
-        let expectedRow: [Row] = [Row(contents: [Content(content: "22", index: 0)])]
+        let expectedRow: [Row] = [Row(contents: [Owl.Content(content: "", index: 0), Owl.Content(content: "22", index: 1)])]
+        
         XCTAssertEqual(expectedHeaders, data.headers)
         XCTAssertEqual(expectedRow, data.rows)
         
         let data2 = try CSVData(data: DummyDecodedStruct.csvImcomplete2, separator: .comma)
-        let expectedRows2: [Row] = [Row(contents: [Content(content: "Rebecca", index: 0)])]
+        let expectedRows2: [Row] = [Row(contents: [Content(content: "Rebecca", index: 0), Content(content: "", index: 1)])]
         
         XCTAssertEqual(expectedHeaders, data2.headers)
         XCTAssertEqual(expectedRows2, data2.rows)

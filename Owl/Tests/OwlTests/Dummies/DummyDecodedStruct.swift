@@ -25,7 +25,12 @@ struct DummyDecodedStruct: Decodable, Equatable {
     
     static let csvImcomplete2: Data = """
     name,age
-    Rebecca
+    Rebecca,
+    """.data(using: .utf8)!
+    
+    static let csvIncorrectRow: Data = """
+    name,age,dog
+    Rebecca,,jessie
     """.data(using: .utf8)!
     
     static let headers: [Header] = [Header(key: "name", index: 0), Header(key: "age", index: 1)]
