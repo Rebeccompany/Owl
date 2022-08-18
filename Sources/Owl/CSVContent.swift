@@ -32,7 +32,7 @@ struct CSVData: Equatable {
         })
         
         self.rows = rows.map { row in
-            row.split(separator: separator.character, omittingEmptySubsequences: false).enumerated()
+            split(String(row), separator: separator.character).enumerated()
                 .map { index, content in
                     Content(content: String(content), index: index)
                 }
@@ -41,11 +41,39 @@ struct CSVData: Equatable {
         
         try self.rows.forEach { row in
             if row.contents.count != self.headers.count {
-                throw ConvertingError.imcompleteData
+                throw ConvertingError.incompleteData
             }
         }
         
     }
+}
+
+func split(_ str: String, separator: Character) -> [String] {
+    var result: [String] = []
+    var currentString: String = ""
+    var isInsideAComplexSentence: Bool = false
+    
+    for character in str {
+        if isInsideAComplexSentence {
+            currentString.append(character)
+            if character == "\"" {
+                isInsideAComplexSentence = false
+            }
+        } else {
+            if character == separator {
+                result.append(currentString)
+                currentString = ""
+            } else {
+                currentString.append(character)
+            }
+            if character == "\"" {
+                isInsideAComplexSentence = true
+            }
+        }
+    }
+    
+    result.append(currentString)
+    return result
 }
 
 struct Header: Equatable {
@@ -65,5 +93,5 @@ struct Content: Equatable {
 enum ConvertingError: Error {
     case couldNotReadData
     case couldNotFindHeaders
-    case imcompleteData
+    case incompleteData
 }
