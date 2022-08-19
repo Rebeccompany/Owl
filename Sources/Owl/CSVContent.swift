@@ -22,7 +22,7 @@ struct CSVData: Equatable {
             throw ConvertingError.couldNotReadData
         }
         
-        var rows = contentCSVString.split(separator: "\n", omittingEmptySubsequences: false)
+        var rows = contentCSVString.split(separator: "\n", omittingEmptySubsequences: true)
         
         guard !rows.isEmpty else { throw ConvertingError.couldNotFindHeaders }
         let headers = rows.removeFirst().split(separator: separator.character, omittingEmptySubsequences: false).enumerated()
