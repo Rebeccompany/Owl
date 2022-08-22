@@ -77,4 +77,4 @@ final class CSVDecoderTests: XCTestCase {
         
         XCTAssertThrowsError(try sut.decode([DummyDecodedStruct].self, from: dataWithIncompleteRow))
     }
-    
+}
